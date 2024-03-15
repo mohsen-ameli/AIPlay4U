@@ -2,16 +2,8 @@ import { motion } from "framer-motion"
 import { useRef, useState } from "react"
 import { useSpring, animated, SpringRef } from "@react-spring/web"
 import { useGesture } from "@use-gesture/react"
+import { create } from "zustand"
 
-function SetBlock() {
-  return (
-    <motion.div className="border bg-cyan-300 w-fit" drag dragMomentum={false}>
-      Set Block
-    </motion.div>
-  )
-}
-
-const OFFSET = 20
 type BlockType = {
   id: number
   x: number
@@ -21,11 +13,12 @@ type BlockType = {
   springApi?: SpringRef<{ x: number; y: number }>
 }
 
-export default function App() {
-  const ifRef = useRef<HTMLDivElement>(null!)
-  const setRef = useRef<HTMLDivElement>(null!)
+type StoreType = {
+  blocks: BlockType[]
+}
 
-  const [blocks, setBlocks] = useState<BlockType[]>([
+const useBlockStore = create<StoreType>(set => ({
+  blocks: [
     {
       id: 0,
       x: 0,
@@ -40,7 +33,32 @@ export default function App() {
       type: "if",
       children: [],
     },
-  ])
+  ],
+}))
+
+const OFFSET = 20
+
+function SetBlock() {
+  return (
+    <motion.div className="border bg-cyan-300 w-fit" drag dragMomentum={false}>
+      Set Block
+    </motion.div>
+  )
+}
+
+function IfBlock() {
+  return (
+    <motion.div className="border bg-red-300 w-fit" drag dragMomentum={false}>
+      If Block
+    </motion.div>
+  )
+}
+
+export default function App() {
+  const ifRef = useRef<HTMLDivElement>(null!)
+  const setRef = useRef<HTMLDivElement>(null!)
+
+  const blocks = useBlockStore(state => state.blocks)
 
   const [{ x, y }, api] = useSpring(() => ({
     x: 0,
@@ -65,19 +83,15 @@ export default function App() {
             x: rect.x + OFFSET,
             y: rect.y + rect.height,
           })
-          setBlocks(prev =>
-            prev.map(block => {
-              if (block.id === 1) block.children = [0]
-              return block
-            })
-          )
+          useBlockStore.setState(prev => {
+            prev.blocks[1].children = [0]
+            return prev
+          })
         } else {
-          setBlocks(prev =>
-            prev.map(block => {
-              if (block.id === 1) block.children = []
-              return block
-            })
-          )
+          useBlockStore.setState(prev => {
+            prev.blocks[1].children = []
+            return prev
+          })
         }
       },
       onDrag: ({ down, offset: [x, y] }) => {
