@@ -3,7 +3,7 @@ import { useSpring, animated, SpringRef } from "@react-spring/web"
 import { useGesture } from "@use-gesture/react"
 import { create } from "zustand"
 
-type BlockType = {
+type Block = {
   id: number
   type: "if" | "set"
   children: number[]
@@ -11,10 +11,12 @@ type BlockType = {
   ref?: React.MutableRefObject<HTMLDivElement>
   initialX: number
   initialY: number
+  totalChildren: number
 }
 
 type StoreType = {
-  blocks: BlockType[]
+  blocks: Block[]
+  addBlock: (block: Block) => void
 }
 
 const useBlockStore = create<StoreType>(set => ({
@@ -26,6 +28,7 @@ const useBlockStore = create<StoreType>(set => ({
       ref: null!,
       initialX: 20,
       initialY: 20,
+      totalChildren: 0,
     },
     {
       id: 1,
@@ -34,6 +37,7 @@ const useBlockStore = create<StoreType>(set => ({
       ref: null!,
       initialX: 140,
       initialY: 20,
+      totalChildren: 0,
     },
     {
       id: 2,
@@ -42,6 +46,7 @@ const useBlockStore = create<StoreType>(set => ({
       ref: null!,
       initialX: 260,
       initialY: 20,
+      totalChildren: 0,
     },
     {
       id: 3,
@@ -50,6 +55,7 @@ const useBlockStore = create<StoreType>(set => ({
       ref: null!,
       initialX: 380,
       initialY: 20,
+      totalChildren: 0,
     },
     {
       id: 4,
@@ -58,17 +64,26 @@ const useBlockStore = create<StoreType>(set => ({
       ref: null!,
       initialX: 500,
       initialY: 20,
+      totalChildren: 0,
     },
   ],
+  addBlock: (block: Block) =>
+    set(state => ({ blocks: [...state.blocks, block] })),
 }))
+
+function getTotalNumOfChildren(block: Block, blocks: Block[]): number {
+  let total = 0
+  for (const child of block.children) {
+    total += getTotalNumOfChildren(blocks[child], blocks)
+  }
+  return total + block.children.length
+}
 
 const OFFSET = 20
 
-function SetBlock({ id }: { id: number }) {
+function SetBlock({ block_ }: { block_: Block }) {
   const ref = useRef<HTMLDivElement>(null!)
-  const blocks = useBlockStore.getState().blocks
-  const initialX = blocks[id].initialX
-  const initialY = blocks[id].initialY
+  const { id, initialX, initialY } = block_
 
   const [{ x, y }, api] = useSpring(() => ({
     x: 0,
@@ -102,10 +117,22 @@ function SetBlock({ id }: { id: number }) {
               clientY <= rect.bottom &&
               clientY >= rect.top
             ) {
+              if (block.children.includes(id)) {
+                api.start({
+                  x: rect.x - initialX + OFFSET,
+                  y:
+                    rect.y -
+                    initialY +
+                    rect.height * (block.children.indexOf(id) + 1),
+                })
+                return
+              }
               api.start({
                 x: rect.x - initialX + OFFSET,
                 y:
-                  rect.y - initialY + rect.height * (block.children.length + 1),
+                  rect.y -
+                  initialY +
+                  rect.height * (getTotalNumOfChildren(block, blocks) + 1),
               })
               useBlockStore.setState(prev => {
                 // if the block is not already in the children array
@@ -147,11 +174,10 @@ function SetBlock({ id }: { id: number }) {
   )
 }
 
-function IfBlock({ id }: { id: number }) {
+function IfBlock({ block_ }: { block_: Block }) {
   const ref = useRef<HTMLDivElement>(null!)
   const blocks = useBlockStore(state => state.blocks)
-  const initialX = blocks[id].initialX
-  const initialY = blocks[id].initialY
+  const { id, initialX, initialY } = block_
 
   const [{ x, y }, api] = useSpring(() => ({
     x: 0,
@@ -183,10 +209,23 @@ function IfBlock({ id }: { id: number }) {
               clientY <= rect.bottom &&
               clientY >= rect.top
             ) {
-              // api.start({
-              //   x: rect.x - OFFSET,
-              //   y: 0, //+ rect.height * (block.children.length + 1),
-              // })
+              // move the current block
+              api.start({
+                x: rect.x - initialX + OFFSET,
+                y:
+                  rect.y - initialY + rect.height * (block.children.length + 1),
+              })
+              let i = 1
+              for (const child of blocks[id].children) {
+                blocks[child].springApi?.start({
+                  x: rect.left - blocks[child].initialX + OFFSET * 2,
+                  y:
+                    rect.top -
+                    blocks[child].initialY +
+                    rect.height * (block.children.length + i + 1),
+                })
+                i++
+              }
               useBlockStore.setState(prev => {
                 // if the block is not already in the children array
                 if (!prev.blocks[block.id].children.includes(id))
@@ -212,25 +251,27 @@ function IfBlock({ id }: { id: number }) {
 
         // could make this into a function to tidy things up,
         // and run it every time a drag ends.
-        if (blocks[id].children.length > 0) {
+        if (blocks[id].children.length === 0) return
+
+        // recursively update the children
+        let i = 0
+        function updateChildren(id: number, depth: number) {
           for (const child of blocks[id].children) {
-            // print the current ref.current's y value
+            i++
             blocks[child].springApi?.start({
-              x: x + initialX - blocks[child].initialX + OFFSET,
-              y:
-                y +
-                initialY -
-                blocks[child].initialY +
-                rect.height * (blocks[id].children.indexOf(child) + 1),
+              x: x + initialX - blocks[child].initialX + OFFSET * depth,
+              y: y + initialY - blocks[child].initialY + rect.height * i,
             })
+            updateChildren(child, depth + 1)
           }
         }
+        updateChildren(id, 1)
       },
     },
     {
-      // drag: {
-      //   from: () => [x.get(), y.get()],
-      // },
+      drag: {
+        from: () => [x.get(), y.get()],
+      },
     }
   )
 
@@ -249,13 +290,27 @@ function IfBlock({ id }: { id: number }) {
 export default function App() {
   const blocks = useBlockStore(state => state.blocks)
 
+  function addBlock(type: "if" | "set") {
+    useBlockStore.getState().addBlock({
+      id: blocks.length,
+      type,
+      children: [],
+      ref: null!,
+      initialX: 10 * blocks.length,
+      initialY: 20,
+      totalChildren: 0,
+    })
+  }
+
   return (
     <div className="bg-slate-800 w-screen h-screen select-none flex">
+      <button onClick={() => addBlock("set")}>Add Set Block</button>
+      <button onClick={() => addBlock("if")}>Add If Block</button>
       {blocks.map(block => {
         if (block.type === "set") {
-          return <SetBlock id={block.id} key={block.id} />
+          return <SetBlock block_={block} key={block.id} />
         } else if (block.type === "if") {
-          return <IfBlock id={block.id} key={block.id} />
+          return <IfBlock block_={block} key={block.id} />
         }
       })}
     </div>
