@@ -11,7 +11,6 @@ type Block = {
   ref?: React.MutableRefObject<HTMLDivElement>
   initialX: number
   initialY: number
-  totalChildren: number
 }
 
 type StoreType = {
@@ -28,7 +27,6 @@ const useBlockStore = create<StoreType>(set => ({
       ref: null!,
       initialX: 20,
       initialY: 20,
-      totalChildren: 0,
     },
     {
       id: 1,
@@ -37,7 +35,6 @@ const useBlockStore = create<StoreType>(set => ({
       ref: null!,
       initialX: 140,
       initialY: 20,
-      totalChildren: 0,
     },
     {
       id: 2,
@@ -46,7 +43,6 @@ const useBlockStore = create<StoreType>(set => ({
       ref: null!,
       initialX: 260,
       initialY: 20,
-      totalChildren: 0,
     },
     {
       id: 3,
@@ -55,7 +51,6 @@ const useBlockStore = create<StoreType>(set => ({
       ref: null!,
       initialX: 380,
       initialY: 20,
-      totalChildren: 0,
     },
     {
       id: 4,
@@ -64,7 +59,6 @@ const useBlockStore = create<StoreType>(set => ({
       ref: null!,
       initialX: 500,
       initialY: 20,
-      totalChildren: 0,
     },
   ],
   addBlock: (block: Block) =>
@@ -298,7 +292,6 @@ export default function App() {
       ref: null!,
       initialX: 10 * blocks.length,
       initialY: 20,
-      totalChildren: 0,
     })
   }
 
