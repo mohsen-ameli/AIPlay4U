@@ -1,0 +1,4 @@
+1) set block to inside of if block
+2) set block to set block
+3) set block to set block inside of if block
+4) set block to end block
