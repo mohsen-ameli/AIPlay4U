@@ -16,20 +16,30 @@ type Block = {
   initialX: number
   initialY: number
   blockDepth: number // how many ifs is this block inside of
-  children?: number[] // only for if blocks
+  parentIf?: number
 }
 
 type StoreType = {
   blocks: Block[]
-  moveGroupBlock: (id: number, hoveringId: number) => void
   moveBlock: (id: number, hoveringId: number) => void
+  detachBlock: (id: number) => void
   addBlock: (block: Block) => void
 }
 
-function getAboveIfBlock(block: Block) {
-  if (block.type === "if") return block
-  if (block.prev) return getAboveIfBlock(block.prev)
-  return null
+function updateChildrenMove(
+  block: Block | null,
+  currDepth: number,
+  endBlockId: number
+) {
+  if (!block || block.id === endBlockId) return
+  block.blockDepth = currDepth + 1
+  updateChildrenMove(block.next, currDepth, endBlockId)
+}
+
+function updateChildrenDetatch(block: Block | null, endBlockId: number) {
+  if (!block || block.id === endBlockId) return
+  block.blockDepth -= 1
+  updateChildrenDetatch(block.next, endBlockId)
 }
 
 const useBlockStore = create<StoreType>(set => ({
@@ -83,7 +93,6 @@ const useBlockStore = create<StoreType>(set => ({
       initialX: 500,
       initialY: 20,
       blockDepth: 0,
-      children: [],
     },
     {
       id: 5,
@@ -104,7 +113,6 @@ const useBlockStore = create<StoreType>(set => ({
       initialX: 140,
       initialY: 100,
       blockDepth: 0,
-      children: [],
     },
     {
       id: 7,
@@ -116,60 +124,125 @@ const useBlockStore = create<StoreType>(set => ({
       initialY: 100 + BLOCK_HEIGHT,
       blockDepth: 0,
     },
+    {
+      id: 8,
+      type: "if",
+      prev: null,
+      next: null,
+      ref: null!,
+      initialX: 260,
+      initialY: 100,
+      blockDepth: 0,
+    },
+    {
+      id: 9,
+      type: "end",
+      prev: null,
+      next: null,
+      ref: null!,
+      initialX: 260,
+      initialY: 100 + BLOCK_HEIGHT,
+      blockDepth: 0,
+    },
   ],
-  moveGroupBlock: (id: number, hoveringId: number) => {
-    // TODO: implement this
-  },
   moveBlock: (id: number, hoveringId: number) =>
     set(state => {
       const blocks = state.blocks
       const hoveringBlock = blocks[hoveringId]
       const currBlock = blocks[id]
       const prevBlock = currBlock.prev
+      const endBlock = currBlock.type === "if" ? blocks[id + 1] : null
 
-      if (currBlock.prev) {
-        currBlock.prev.next = currBlock.next
+      // Handling block depth and parent if
+      if (
+        hoveringBlock.type === "if" &&
+        currBlock.parentIf !== hoveringBlock.id
+      ) {
+        currBlock.blockDepth = hoveringBlock.blockDepth + 1
+        currBlock.parentIf = hoveringBlock.id
+      } else if (hoveringBlock.type === "end") {
+        currBlock.blockDepth = hoveringBlock.blockDepth
+        currBlock.parentIf = undefined
+      } else if (hoveringBlock.type === "set") {
+        currBlock.blockDepth = hoveringBlock.blockDepth
+        currBlock.parentIf = hoveringBlock.parentIf
       }
-      if (currBlock.next) {
-        currBlock.next.prev = currBlock.prev
+      if (currBlock.type === "if")
+        updateChildrenMove(currBlock.next, currBlock.blockDepth, id + 1)
+      if (endBlock) {
+        endBlock.blockDepth = currBlock.blockDepth
+        endBlock.parentIf = currBlock.parentIf
       }
-      currBlock.next = hoveringBlock.next
-      if (hoveringBlock.next) {
-        hoveringBlock.next.prev = currBlock
-        if (hoveringBlock.next === currBlock) {
-          hoveringBlock.next.next = null
+
+      // Main logic for moving blocks
+      if (currBlock.type === "if" && endBlock) {
+        if (currBlock.prev) currBlock.prev.next = endBlock.next
+        if (endBlock.next) endBlock.next.prev = currBlock.prev
+        if (hoveringBlock.next) hoveringBlock.next.prev = endBlock
+
+        endBlock.next = hoveringBlock.next
+        currBlock.prev = hoveringBlock
+        hoveringBlock.next = currBlock
+      } else {
+        if (currBlock.prev) currBlock.prev.next = currBlock.next
+        if (currBlock.next) currBlock.next.prev = currBlock.prev
+
+        currBlock.next = hoveringBlock.next
+
+        if (hoveringBlock.next) {
+          hoveringBlock.next.prev = currBlock
+          if (hoveringBlock.next === currBlock) {
+            hoveringBlock.next.next = null
+          }
         }
+
+        hoveringBlock.next = currBlock
+        currBlock.prev = hoveringBlock
       }
-      hoveringBlock.next = currBlock
-      currBlock.prev = hoveringBlock
 
-      // If the block is being moved into the inside of an if block
-      // const rootIf = getAboveIfBlock(currBlock)
-      // if (
-      //   rootIf &&
-      //   (hoveringBlock.type === "if" || hoveringBlock.blockDepth > 0) &&
-      //   !rootIf.children?.includes(currBlock.id)
-      // ) {
-      //   hoveringBlock.children?.push(currBlock.id)
-      //   currBlock.blockDepth += 1
-      // } else if (currBlock.blockDepth > 0) {
-      //   currBlock.blockDepth -= 1
-      // }
-
-      // Updating the root of the current block's tree
+      // Handling all blocks positions
       const root = getRootBlock(currBlock)
       updateBlockRootPos(root, root.next, numBlocksAbove(currBlock), 1)
 
-      // If the block is being moved out of another block, then update that block's tree
+      // If the block is being moved out of another block, then update that block's tree's position
       if (prevBlock) {
         const prevRoot = getRootBlock(prevBlock)
-        updateBlockRootPos(
-          prevRoot,
-          prevRoot.next,
-          numBlocksAbove(prevBlock),
-          1
-        )
+        updateBlockRootPos(prevRoot, prevRoot.next, numBlocksAbove(prevBlock), 1) // prettier-ignore
       }
+
+      return state
+    }),
+  detachBlock: (id: number) =>
+    set(state => {
+      const blocks = state.blocks
+      const currBlock = blocks[id]
+      const root = getRootBlock(currBlock)
+
+      if (currBlock.type === "if") {
+        const endBlock = blocks[id + 1]
+
+        if (currBlock.prev) currBlock.prev.next = endBlock.next
+        if (endBlock.next) endBlock.next.prev = currBlock.prev
+
+        currBlock.prev = null
+        endBlock.next = null
+
+        updateChildrenDetatch(currBlock.next, id + 1)
+
+        currBlock.blockDepth = 0
+        endBlock.blockDepth = 0
+        currBlock.parentIf = undefined
+        endBlock.parentIf = undefined
+      } else {
+        if (currBlock.prev) currBlock.prev.next = currBlock.next
+        if (currBlock.next) currBlock.next.prev = currBlock.prev
+
+        currBlock.next = null
+        currBlock.prev = null
+      }
+
+      updateBlockRootPos(root, root.next, numBlocksAbove(currBlock), 1)
+
       return state
     }),
   addBlock(block: Block) {},
@@ -182,15 +255,16 @@ function updateBlockRootPos(
   prevDepth: number, // could remove this
   i: number = 1
 ) {
-  if (!next) return
+  if (!next || !root.ref || !next.springApi) return
+
   const { springApi, initialX, initialY, blockDepth } = next
-  if (!springApi || !root.ref) return
   const rootRect = root.ref.current.getBoundingClientRect()
 
   springApi.start({
     x: rootRect.x - initialX + OFFSET * blockDepth,
     y: rootRect.y - initialY + BLOCK_HEIGHT * i,
   })
+
   if (next.next) updateBlockRootPos(root, next.next, prevDepth, ++i)
 }
 
@@ -214,6 +288,7 @@ function SetBlock({ block_ }: { block_: Block }) {
   const ref = useRef<HTMLDivElement>(null!)
   const blocks = useBlockStore(state => state.blocks)
   const moveBlock = useBlockStore(state => state.moveBlock)
+  const detachBlock = useBlockStore(state => state.detachBlock)
   const { id, initialX, initialY } = block_
 
   const [{ x, y }, api] = useSpring(() => ({
@@ -252,48 +327,7 @@ function SetBlock({ block_ }: { block_: Block }) {
         }
 
         // Detaching this block from the other blocks
-        if (!foundHit && (block_.prev || block_.next)) {
-          useBlockStore.setState(state => {
-            const blocks = state.blocks
-            const currBlock = blocks[id]
-            const root = getRootBlock(currBlock)
-
-            if (currBlock.prev) currBlock.prev.next = currBlock.next
-            if (currBlock.next) currBlock.next.prev = currBlock.prev
-
-            currBlock.next = null
-            currBlock.prev = null
-
-            updateBlockRootPos(root, root.next, numBlocksAbove(currBlock), 1)
-
-            return state
-          })
-        }
-
-        // useBlockStore.setState(state => {
-        //   const currBlock = state.blocks[id]
-        //   const rootIf = getAboveIfBlock(currBlock)
-
-        //   if (!rootIf) {
-        //     currBlock.blockDepth = 0
-        //   } else {
-        //     if (foundHit && !rootIf.children?.includes(currBlock.id)) {
-        //       currBlock.blockDepth += 1
-        //       rootIf.children?.push(currBlock.id)
-        //     } else if (!foundHit) {
-        //       currBlock.blockDepth -= 1
-        //       rootIf.children?.splice(
-        //         rootIf.children?.indexOf(currBlock.id) || 0,
-        //         1
-        //       )
-        //     }
-        //   }
-
-        //   const root = getRootBlock(currBlock)
-        //   updateBlockRootPos(root, root.next, numBlocksAbove(currBlock), 1)
-
-        //   return state
-        // })
+        if (!foundHit && (block_.prev || block_.next)) detachBlock(id)
       },
       onDrag: ({ down, offset: [x, y] }) => {
         if (down) api.start({ x, y })
@@ -322,6 +356,7 @@ function IfBlock({ block_ }: { block_: Block }) {
   const ref = useRef<HTMLDivElement>(null!)
   const blocks = useBlockStore(state => state.blocks)
   const moveBlock = useBlockStore(state => state.moveBlock)
+  const detachBlock = useBlockStore(state => state.detachBlock)
   const { id, initialX, initialY } = block_
 
   const [{ x, y }, api] = useSpring(() => ({
@@ -363,41 +398,30 @@ function IfBlock({ block_ }: { block_: Block }) {
         }
 
         // Detaching this block from the other blocks
-        if (!foundHit && (block_.prev || blocks[id + 1].next)) {
-          useBlockStore.setState(state => {
-            const blocks = state.blocks
-            const currBlock = blocks[id]
-
-            if (currBlock.prev) {
-              currBlock.prev.next = currBlock.next
-            }
-            if (currBlock.next) {
-              currBlock.next.prev = currBlock.prev
-            }
-
-            currBlock.next = null
-            currBlock.prev = null
-            // currBlock.blockDepth -= 1
-
-            return state
-          })
-        }
+        if (!foundHit && (block_.prev || blocks[id + 1].next)) detachBlock(id)
       },
       onDrag: ({ down, offset: [x, y] }) => {
         if (!down) return
         api.start({ x, y })
-        blocks[id + 1].springApi?.start({ x, y })
+        const currDepth = blocks[id].blockDepth
 
-        // let i = 1
-        // for (const child of children) {
-        //   const childBlock = blocks[child]
-        //   if (!childBlock.ref) return
-        //   const rect = ref.current.getBoundingClientRect()
-        //   childBlock.springApi?.start({
-        //     x: x + initialX - childBlock.initialX + OFFSET,
-        //     y: y + initialY - childBlock.initialY + BLOCK_HEIGHT * (children.indexOf(child) + 1), // prettier-ignore
-        //   })
-        // }
+        function moveChildren(block: Block | null, i: number = 1) {
+          if (!block) return
+          if (!block.next || block.id === id + 1) {
+            block.springApi?.start({ x, y: y + BLOCK_HEIGHT * (i - 1) })
+            return
+          }
+          block.springApi?.start({
+            x:
+              x +
+              initialX -
+              block.initialX +
+              OFFSET * (block.blockDepth - currDepth),
+            y: y + initialY - block.initialY + BLOCK_HEIGHT * i, // prettier-ignore
+          })
+          moveChildren(block.next, ++i)
+        }
+        moveChildren(blocks[id].next)
       },
     },
     {
@@ -452,6 +476,16 @@ function EndBlock({ block_ }: { block_: Block }) {
 export default function Blocks() {
   const blocks = useBlockStore(state => state.blocks)
 
+  function printBlocks() {
+    const blocks = useBlockStore.getState().blocks
+    for (const block of blocks) {
+      console.log(
+        `id: ${block.id} prev: ${block.prev?.id} next: ${block.next?.id}`
+      )
+      // console.log(block)
+    }
+  }
+
   // function addBlock(type: "if" | "set") {
   //   useBlockStore.getState().addBlock({
   //     id: blocks.length,
@@ -461,16 +495,6 @@ export default function Blocks() {
   //     initialY: 20,
   //   })
   // }
-
-  function printBlocks() {
-    const blocks = useBlockStore.getState().blocks
-    console.log(blocks[6])
-    // for (const block of blocks) {
-    // console.log(
-    //   `id: ${block.id} prev: ${block.prev?.id} next: ${block.next?.id}`
-    // )
-    // }
-  }
 
   return (
     <div className="bg-slate-800 w-screen h-screen select-none flex">
