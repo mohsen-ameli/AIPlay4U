@@ -26,22 +26,6 @@ type StoreType = {
   addBlock: (block: Block) => void
 }
 
-function updateChildrenMove(
-  block: Block | null,
-  currDepth: number,
-  endBlockId: number
-) {
-  if (!block || block.id === endBlockId) return
-  block.blockDepth = currDepth + 1
-  updateChildrenMove(block.next, currDepth, endBlockId)
-}
-
-function updateChildrenDetatch(block: Block | null, endBlockId: number) {
-  if (!block || block.id === endBlockId) return
-  block.blockDepth -= 1
-  updateChildrenDetatch(block.next, endBlockId)
-}
-
 const useBlockStore = create<StoreType>(set => ({
   blocks: [
     {
@@ -167,8 +151,9 @@ const useBlockStore = create<StoreType>(set => ({
         currBlock.blockDepth = hoveringBlock.blockDepth
         currBlock.parentIf = hoveringBlock.parentIf
       }
-      if (currBlock.type === "if")
-        updateChildrenMove(currBlock.next, currBlock.blockDepth, id + 1)
+      if (currBlock.type === "if") {
+        updateChildrenDepth(currBlock.next, currBlock.blockDepth, id + 1)
+      }
       if (endBlock) {
         endBlock.blockDepth = currBlock.blockDepth
         endBlock.parentIf = currBlock.parentIf
@@ -226,27 +211,51 @@ const useBlockStore = create<StoreType>(set => ({
 
         currBlock.prev = null
         endBlock.next = null
+        currBlock.parentIf = undefined
+        endBlock.parentIf = undefined
 
-        updateChildrenDetatch(currBlock.next, id + 1)
+        updateChildrenDepth(currBlock.next, 0, id + 1)
 
         currBlock.blockDepth = 0
         endBlock.blockDepth = 0
-        currBlock.parentIf = undefined
-        endBlock.parentIf = undefined
       } else {
         if (currBlock.prev) currBlock.prev.next = currBlock.next
         if (currBlock.next) currBlock.next.prev = currBlock.prev
 
         currBlock.next = null
         currBlock.prev = null
+        currBlock.blockDepth = 0
+        currBlock.parentIf = undefined
       }
 
-      updateBlockRootPos(root, root.next, numBlocksAbove(currBlock), 1)
+      if (root.id !== currBlock.id)
+        updateBlockRootPos(root, root.next, numBlocksAbove(currBlock), 1)
 
       return state
     }),
   addBlock(block: Block) {},
 }))
+
+// Given a block, updates the depth of all the children blocks
+function updateChildrenDepth(
+  block: Block | null,
+  currDepth: number,
+  endBlockId: number,
+  depth: number = 0
+) {
+  if (!block || block.id === endBlockId) {
+    if (block) block.blockDepth = currDepth
+    return
+  }
+  block.blockDepth = currDepth + depth + 1
+  if (block.type === "if") {
+    updateChildrenDepth(block.next, currDepth, block.id + 1, depth + 1)
+    block = block.next
+    depth = 0
+  }
+  if (!block) return
+  updateChildrenDepth(block.next, currDepth, endBlockId, depth)
+}
 
 // Given the root of tree, updates the position of all the blocks below it
 function updateBlockRootPos(
@@ -375,6 +384,37 @@ function IfBlock({ block_ }: { block_: Block }) {
     })
   }, [])
 
+  // Move the children blocks
+  // Only for if blocks
+  function moveChildren(
+    x: number,
+    y: number,
+    currDepth: number,
+    block: Block | null,
+    i: number = 1
+  ) {
+    if (!block) return
+    if (!block.next || block.id === id + 1) {
+      block.springApi?.start({ x, y: y + BLOCK_HEIGHT * (i - 1) })
+      return
+    }
+    // prettier-ignore
+    block.springApi?.start({
+      x: x + initialX - block.initialX + OFFSET * (block.blockDepth - currDepth), 
+      y: y + initialY - block.initialY + BLOCK_HEIGHT * i,
+    })
+    moveChildren(x, y, currDepth, block.next, ++i)
+  }
+
+  // If the block is a child of another block
+  // Only for if blocks
+  function isChildOf(block: Block, targetId: number, endBlockId: number) {
+    if (!block.next) return false
+    if (block.id === endBlockId) return false
+    if (block.id === targetId) return true
+    return isChildOf(block.next, targetId, endBlockId)
+  }
+
   const bind = useGesture(
     {
       onDragEnd: info => {
@@ -393,6 +433,7 @@ function IfBlock({ block_ }: { block_: Block }) {
           // if we are appending this block to another block
           if (withinBounds) {
             foundHit = true
+            if (isChildOf(blocks[id], block.id, id + 1)) return
             moveBlock(id, block.id)
           }
         }
@@ -402,26 +443,10 @@ function IfBlock({ block_ }: { block_: Block }) {
       },
       onDrag: ({ down, offset: [x, y] }) => {
         if (!down) return
-        api.start({ x, y })
         const currDepth = blocks[id].blockDepth
+        api.start({ x, y })
 
-        function moveChildren(block: Block | null, i: number = 1) {
-          if (!block) return
-          if (!block.next || block.id === id + 1) {
-            block.springApi?.start({ x, y: y + BLOCK_HEIGHT * (i - 1) })
-            return
-          }
-          block.springApi?.start({
-            x:
-              x +
-              initialX -
-              block.initialX +
-              OFFSET * (block.blockDepth - currDepth),
-            y: y + initialY - block.initialY + BLOCK_HEIGHT * i, // prettier-ignore
-          })
-          moveChildren(block.next, ++i)
-        }
-        moveChildren(blocks[id].next)
+        moveChildren(x, y, currDepth, blocks[id].next)
       },
     },
     {
@@ -480,7 +505,7 @@ export default function Blocks() {
     const blocks = useBlockStore.getState().blocks
     for (const block of blocks) {
       console.log(
-        `id: ${block.id} prev: ${block.prev?.id} next: ${block.next?.id}`
+        `id: ${block.id} prev: ${block.prev?.id} next: ${block.next?.id} depth: ${block.blockDepth}`
       )
       // console.log(block)
     }
