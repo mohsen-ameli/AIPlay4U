@@ -1,3 +1,9 @@
+/**
+ * @deprecated
+ * A simple version of this program using stacks.
+ * Lots of bugs are still in this implementation.
+ */
+
 import { useEffect, useRef } from "react"
 import { useSpring, animated, SpringRef } from "@react-spring/web"
 import { useGesture } from "@use-gesture/react"
