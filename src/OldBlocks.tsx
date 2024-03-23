@@ -101,7 +101,7 @@ function SetBlock({ block_ }: { block_: Block }) {
   const bind = useGesture(
     {
       onDragEnd: info => {
-        // @ts-ignore
+        // @ts-expect-error TS is being weird
         const { clientX, clientY } = info.event
         const blocks = useBlockStore.getState().blocks
 
@@ -195,7 +195,7 @@ function IfBlock({ block_ }: { block_: Block }) {
   const bind = useGesture(
     {
       onDragEnd: info => {
-        // @ts-ignore
+        // @ts-expect-error TS is being weird
         const { clientX, clientY } = info.event
         const blocks = useBlockStore.getState().blocks
 
