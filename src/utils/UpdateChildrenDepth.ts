@@ -24,36 +24,36 @@ export default function updateChildrenDepth(
   }
 
   block.blockDepth = currDepth + depth + 1
-  console.log("new depth: ", block.blockDepth)
-  let curr: Block | null = block
+  // console.log("new depth: ", block.blockDepth)
+  // let curr: Block | null = block
   if (block.type === "if") {
     const newEndId = block.id + 1
-    while (curr) {
-      console.log("caller if", curr.id)
-      const a = updateChildrenDepth(blocks, curr.next, currDepth, newEndId, depth + 1) //prettier-ignore
-      if (curr.id === newEndId) {
+    while (block) {
+      // console.log("caller if", block.id)
+      const a = updateChildrenDepth(blocks, block.next, currDepth, newEndId, depth + 1) //prettier-ignore
+      if (block.id === newEndId) {
         break
       }
-      curr = curr.next
+      block = block.next
       if (a > 0) {
         console.log("hi")
-        curr = blocks[a]
+        block = blocks[a]
         break
       }
     }
-    if (curr) {
-      console.log("caller after while", curr.id)
-      return updateChildrenDepth(
-        blocks,
-        curr.next,
-        currDepth,
-        endBlockId,
-        depth,
-      )
-    }
-    return -1
+    // if (curr) {
+    //   console.log("caller after while", curr.id)
+    //   return updateChildrenDepth(
+    //     blocks,
+    //     curr.next,
+    //     currDepth,
+    //     endBlockId,
+    //     depth,
+    //   )
+    // }
+    // return -1
   }
   if (!block) return -1
-  console.log("caller state", block.id)
+  // console.log("caller state", block.id)
   return updateChildrenDepth(blocks, block.next, currDepth, endBlockId, depth)
 }
