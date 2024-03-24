@@ -11,10 +11,7 @@ export default function SetBlock({ block_ }: { block_: Block }) {
   const detachBlock = useBlockStore(state => state.detachBlock)
   const { id, initialX, initialY } = block_
 
-  const [{ x, y }, api] = useSpring(() => ({
-    x: 0,
-    y: 0,
-  }))
+  const [{ x, y }, api] = useSpring(() => ({ x: 0, y: 0 }))
 
   useEffect(() => {
     useBlockStore.setState(prev => {
@@ -27,7 +24,7 @@ export default function SetBlock({ block_ }: { block_: Block }) {
   const bind = useGesture(
     {
       onDragEnd: info => {
-        // @ts-ignore
+        // @ts-expect-error TS is weird
         const { clientX, clientY } = info.event
 
         // I think this is okay to do. We loop over all blocks,
@@ -49,14 +46,15 @@ export default function SetBlock({ block_ }: { block_: Block }) {
         // Detaching this block from the other blocks
         if (!foundHit && (block_.prev || block_.next)) detachBlock(id)
       },
-      onDrag: ({ down, offset: [x, y] }) => {
+      onDrag: ({ down, offset: [x, y], event }) => {
+        event.stopPropagation()
         if (down) api.start({ x, y })
-      },
+      }
     },
     {
       drag: {
-        from: () => [x.get(), y.get()],
-      },
+        from: () => [x.get(), y.get()]
+      }
     }
   )
 
@@ -67,7 +65,16 @@ export default function SetBlock({ block_ }: { block_: Block }) {
       style={{ x, y, top: initialY, left: initialX }}
       ref={ref}
     >
-      Set Block {id}
+      Set{" "}
+      <input
+        className="w-28 placeholder:text-center"
+        placeholder="Variable Name"
+      />{" "}
+      be{" "}
+      <input
+        className="w-28 placeholder:text-center"
+        placeholder="Some Value"
+      />
     </animated.div>
   )
 }

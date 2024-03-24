@@ -7,10 +7,7 @@ export default function EndBlock({ block_ }: { block_: Block }) {
   const ref = useRef<HTMLDivElement>(null!)
   const { id, initialX, initialY } = block_
 
-  const [{ x, y }, api] = useSpring(() => ({
-    x: 0,
-    y: 0,
-  }))
+  const [{ x, y }, api] = useSpring(() => ({ x: 0, y: 0 }))
 
   useEffect(() => {
     useBlockStore.setState(prev => {
@@ -26,7 +23,7 @@ export default function EndBlock({ block_ }: { block_: Block }) {
       ref={ref}
       className="border absolute bg-red-300 w-fit h-fit p-4"
     >
-      End Block {id}
+      Closing If
     </animated.div>
   )
 }

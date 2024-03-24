@@ -15,8 +15,7 @@ export type Block = {
 
 export type StoreType = {
   blocks: Block[]
-  nums: number[]
   moveBlock: (id: number, hoveringId: number) => void
   detachBlock: (id: number) => void
-  addBlock: (type: "if" | "set") => void
+  addBlock: (block: Block) => void
 }

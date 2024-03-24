@@ -1,6 +1,5 @@
 import { create } from "zustand"
 import { StoreType, Block } from "../types/general"
-import { BLOCK_HEIGHT } from "../data/Constants"
 import getRootBlock from "../utils/GetRootBlock"
 import updateBlockRootPos from "../utils/UpdateBlockRootPos"
 import numBlocksAbove from "../utils/NumBlockAbove"
@@ -9,7 +8,6 @@ import { blocks } from "../data/Blocks"
 
 const useBlockStore = create<StoreType>(set => ({
   blocks,
-  nums: [1, 2, 3],
   moveBlock: (id: number, hoveringId: number) =>
     set(state => {
       const blocks = state.blocks
@@ -33,7 +31,12 @@ const useBlockStore = create<StoreType>(set => ({
         currBlock.parentIf = hoveringBlock.parentIf
       }
       if (currBlock.type === "if") {
-        updateChildrenDepth(blocks, currBlock.next, currBlock.blockDepth, id + 1)
+        updateChildrenDepth(
+          blocks,
+          currBlock.next,
+          currBlock.blockDepth,
+          id + 1
+        )
       }
       if (endBlock) {
         endBlock.blockDepth = currBlock.blockDepth
@@ -114,33 +117,8 @@ const useBlockStore = create<StoreType>(set => ({
 
       return state
     }),
-  addBlock: (type: "if" | "set") =>
-    set(state => {
-      const blocks = state.blocks
-
-      const block: Block = {
-        id: blocks.length,
-        type,
-        prev: null,
-        next: null,
-        initialX: 100 * blocks.length,
-        initialY: 20,
-        ref: null!,
-        blockDepth: 0,
-      }
-
-      blocks.push(block)
-
-      if (type === "if") {
-        const endBlock = structuredClone(block)
-        endBlock.id++
-        endBlock.initialY += BLOCK_HEIGHT
-        endBlock.type = "end"
-        blocks.push(endBlock)
-      }
-
-      return state
-    }),
+  addBlock: (block: Block) =>
+    set(state => ({ blocks: [...state.blocks, block] }))
 }))
 
 export default useBlockStore

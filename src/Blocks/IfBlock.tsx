@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSpring, animated } from "@react-spring/web"
 import { useGesture } from "@use-gesture/react"
 import { Block } from "../types/general"
@@ -12,10 +12,7 @@ export default function IfBlock({ block_ }: { block_: Block }) {
   const detachBlock = useBlockStore(state => state.detachBlock)
   const { id, initialX, initialY } = block_
 
-  const [{ x, y }, api] = useSpring(() => ({
-    x: 0,
-    y: 0,
-  }))
+  const [{ x, y }, api] = useSpring(() => ({ x: 0, y: 0 }))
 
   useEffect(() => {
     useBlockStore.setState(prev => {
@@ -62,7 +59,7 @@ export default function IfBlock({ block_ }: { block_: Block }) {
   const bind = useGesture(
     {
       onDragEnd: info => {
-        // @ts-ignore
+        // @ts-expect-error TS is weird
         const { clientX, clientY } = info.event
         const blocks = useBlockStore.getState().blocks
 
@@ -85,18 +82,21 @@ export default function IfBlock({ block_ }: { block_: Block }) {
         // Detaching this block from the other blocks
         if (!foundHit && (block_.prev || blocks[id + 1].next)) detachBlock(id)
       },
-      onDrag: ({ down, offset: [x, y] }) => {
+      onDrag: ({ down, offset: [x, y], event }) => {
+        // stop any other drag events
+        event.stopPropagation()
+
         if (!down) return
         const currDepth = blocks[id].blockDepth
         api.start({ x, y })
 
         moveChildren(x, y, currDepth, blocks[id].next)
-      },
+      }
     },
     {
       drag: {
-        from: () => [x.get(), y.get()],
-      },
+        from: () => [x.get(), y.get()]
+      }
     }
   )
 
@@ -108,8 +108,21 @@ export default function IfBlock({ block_ }: { block_: Block }) {
         style={{ x, y, top: initialY, left: initialX }}
         ref={ref}
       >
-        If Block {id}
+        If <Input />
       </animated.div>
     </>
+  )
+}
+
+function Input() {
+  const [value, setValue] = useState("")
+
+  return (
+    <input
+      onChange={e => setValue(e.target.value)}
+      size={value.length - 1 <= 0 ? 1 : value.length - 1}
+      className="max-w-44 min-w-[5.4rem] pl-2"
+      placeholder="Condition"
+    />
   )
 }
