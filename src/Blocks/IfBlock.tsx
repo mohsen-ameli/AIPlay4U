@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { useSpring, animated } from "@react-spring/web"
 import { useGesture } from "@use-gesture/react"
 import { Block } from "../types/general"
 import useBlockStore from "../store/useBlockStore"
 import { BLOCK_HEIGHT, OFFSET } from "../data/Constants"
+import Input from "../components/Input"
 
 export default function IfBlock({ block_ }: { block_: Block }) {
   const ref = useRef<HTMLDivElement>(null!)
@@ -18,12 +19,16 @@ export default function IfBlock({ block_ }: { block_: Block }) {
     useBlockStore.setState(prev => {
       prev.blocks[id].ref = ref
       prev.blocks[id].springApi = api
-      prev.blocks[id].next = prev.blocks[id + 1]
-      prev.blocks[id + 1].prev = prev.blocks[id]
+      if (!prev.blocks[id].next) {
+        prev.blocks[id].next = prev.blocks[id + 1]
+      }
+      if (!prev.blocks[id + 1].prev) {
+        prev.blocks[id + 1].prev = prev.blocks[id]
+      }
 
       return prev
     })
-  }, [])
+  }, [block_])
 
   // Move the children blocks
   // Only for if blocks
@@ -59,6 +64,11 @@ export default function IfBlock({ block_ }: { block_: Block }) {
   const bind = useGesture(
     {
       onDragEnd: info => {
+        // If the movement is too little, we don't want to do anything
+        const x = Math.abs(info.movement[0])
+        const y = Math.abs(info.movement[1])
+        if (x <= 2 && y <= 2) return
+
         // @ts-expect-error TS is weird
         const { clientX, clientY } = info.event
         const blocks = useBlockStore.getState().blocks
@@ -108,21 +118,8 @@ export default function IfBlock({ block_ }: { block_: Block }) {
         style={{ x, y, top: initialY, left: initialX }}
         ref={ref}
       >
-        If <Input />
+        If <Input id={id} inputIdx={0} placeholder="Condition" />
       </animated.div>
     </>
-  )
-}
-
-function Input() {
-  const [value, setValue] = useState("")
-
-  return (
-    <input
-      onChange={e => setValue(e.target.value)}
-      size={value.length - 1 <= 0 ? 1 : value.length - 1}
-      className="max-w-44 min-w-[5.4rem] pl-2"
-      placeholder="Condition"
-    />
   )
 }

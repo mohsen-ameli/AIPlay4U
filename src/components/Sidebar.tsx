@@ -6,19 +6,16 @@ import Button from "./Button"
 export default function Sidebar() {
   const blocks = useBlockStore(state => state.blocks)
   const addBlock = useBlockStore(state => state.addBlock)
+  const runProgram = useBlockStore(state => state.runProgram)
+  const saveBlocks = useBlockStore(state => state.saveBlocks)
+  const loadBlocks = useBlockStore(state => state.loadBlocks)
 
   function printBlocks() {
     const blocks = useBlockStore.getState().blocks
     for (const block of blocks) {
-      console.log(
-        `id: ${block.id} prev: ${block.prev?.id} next: ${block.next?.id} depth: ${block.blockDepth}`
-      )
-      // console.log(block)
+      // console.log(`id: ${block.id} inputs: ${block.inputs}`)
+      console.log(block)
     }
-    // useBlockStore.setState(state => {
-    //   state.nums.push(Math.random())
-    //   return state
-    // })
   }
 
   function add(type: "set" | "if") {
@@ -30,7 +27,8 @@ export default function Sidebar() {
       initialX: 200 + (window.innerWidth - 300) * Math.random(),
       initialY: 20 + (window.innerHeight - 100) * Math.random(),
       ref: null!,
-      blockDepth: 0
+      blockDepth: 0,
+      inputs: []
     }
 
     addBlock(block)
@@ -45,7 +43,7 @@ export default function Sidebar() {
   }
 
   // function onClick() {
-  //   console.log(window.electron.write("this is a\ntest"))
+  //   // console.log(window.electron.write("this is a\ntest"))
   //   // ipcRenderer.send("File", "Hello")
   // }
 
@@ -54,6 +52,9 @@ export default function Sidebar() {
       <Button onClick={() => add("set")}>Add Set Block</Button>
       <Button onClick={() => add("if")}>Add If Block</Button>
       <Button onClick={printBlocks}>Print All Blocks</Button>
+      <Button onClick={runProgram}>Run Program</Button>
+      <Button onClick={saveBlocks}>Save File</Button>
+      <Button onClick={loadBlocks}>Load File</Button>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { useSpring, animated } from "@react-spring/web"
 import { useGesture } from "@use-gesture/react"
 import { Block } from "../types/general"
 import useBlockStore from "../store/useBlockStore"
+import Input from "../components/Input"
 
 export default function SetBlock({ block_ }: { block_: Block }) {
   const ref = useRef<HTMLDivElement>(null!)
@@ -19,11 +20,16 @@ export default function SetBlock({ block_ }: { block_: Block }) {
       prev.blocks[id].springApi = api
       return prev
     })
-  }, [])
+  }, [block_])
 
   const bind = useGesture(
     {
       onDragEnd: info => {
+        // If the movement is too little, we don't want to do anything
+        const x = Math.abs(info.movement[0])
+        const y = Math.abs(info.movement[1])
+        if (x <= 2 && y <= 2) return
+
         // @ts-expect-error TS is weird
         const { clientX, clientY } = info.event
 
@@ -65,16 +71,8 @@ export default function SetBlock({ block_ }: { block_: Block }) {
       style={{ x, y, top: initialY, left: initialX }}
       ref={ref}
     >
-      Set{" "}
-      <input
-        className="w-28 placeholder:text-center"
-        placeholder="Variable Name"
-      />{" "}
-      be{" "}
-      <input
-        className="w-28 placeholder:text-center"
-        placeholder="Some Value"
-      />
+      Set <Input id={id} inputIdx={0} placeholder="Variable" /> be{" "}
+      <Input id={id} inputIdx={1} placeholder="Value" />
     </animated.div>
   )
 }

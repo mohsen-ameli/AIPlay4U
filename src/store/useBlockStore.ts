@@ -4,10 +4,20 @@ import getRootBlock from "../utils/GetRootBlock"
 import updateBlockRootPos from "../utils/UpdateBlockRootPos"
 import numBlocksAbove from "../utils/NumBlockAbove"
 import updateChildrenDepth from "../utils/UpdateChildrenDepth"
-import { blocks } from "../data/Blocks"
 
-const useBlockStore = create<StoreType>(set => ({
-  blocks,
+const useBlockStore = create<StoreType>((set, get) => ({
+  blocks: [
+    {
+      id: 0,
+      type: "start",
+      prev: null,
+      next: null,
+      initialX: 200,
+      initialY: 20,
+      blockDepth: 0,
+      inputs: []
+    }
+  ],
   moveBlock: (id: number, hoveringId: number) =>
     set(state => {
       const blocks = state.blocks
@@ -117,8 +127,48 @@ const useBlockStore = create<StoreType>(set => ({
 
       return state
     }),
+  runProgram: () => {
+    let block: Block | null = get().blocks[0]
+    while (block) {
+      console.log(block)
+      block = block.next
+    }
+  },
   addBlock: (block: Block) =>
-    set(state => ({ blocks: [...state.blocks, block] }))
+    set(state => ({ blocks: [...state.blocks, block] })),
+  saveBlocks: () => {
+    const blocksToSave = []
+    for (const block of get().blocks) {
+      const rect = block.ref?.current?.getBoundingClientRect()
+      blocksToSave.push({
+        id: block.id,
+        type: block.type,
+        prev: block.prev ? block.prev.id : null,
+        next: block.next ? block.next.id : null,
+        initialX: rect?.x,
+        initialY: rect?.y,
+        inputs: block.inputs,
+        blockDepth: block.blockDepth
+      })
+    }
+    window.electron.saveFile("blocks", JSON.stringify(blocksToSave))
+  },
+  loadBlocks: () => {
+    // reset all blocks to initial position
+    for (const block of get().blocks) {
+      block.springApi?.start({ x: 0, y: 0 })
+    }
+
+    // load blocks from file
+    const blocks: Block[] = JSON.parse(window.electron.loadFile("blocks"))
+
+    // update the block store with the loaded blocks
+    for (const block of blocks) {
+      block.prev = block.prev !== null ? blocks[block.prev as unknown as number] : null //prettier-ignore
+      block.next = block.next !== null ? blocks[block.next as unknown as number] : null //prettier-ignore
+    }
+    set({ blocks })
+  }
 }))
 
 export default useBlockStore

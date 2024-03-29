@@ -15,7 +15,7 @@ export default function EndBlock({ block_ }: { block_: Block }) {
       prev.blocks[id].springApi = api
       return prev
     })
-  }, [])
+  }, [block_])
 
   return (
     <animated.div
