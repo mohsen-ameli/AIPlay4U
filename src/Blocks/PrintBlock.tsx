@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react"
 import { useSpring, animated } from "@react-spring/web"
-import { useGesture } from "@use-gesture/react"
 import { Block } from "../types/general"
 import useBlockStore from "../store/useBlockStore"
 import Input from "../components/Input"
+import { useGesture } from "@use-gesture/react"
 
-export default function SetBlock({ block_ }: { block_: Block }) {
+export default function PrintBlock({ block_ }: { block_: Block }) {
   const ref = useRef<HTMLDivElement>(null!)
   const blocks = useBlockStore(state => state.blocks)
   const moveBlock = useBlockStore(state => state.moveBlock)
@@ -66,13 +66,12 @@ export default function SetBlock({ block_ }: { block_: Block }) {
 
   return (
     <animated.div
-      className="border absolute bg-cyan-300 w-fit h-fit p-4 touch-none"
       {...bind()}
       style={{ x, y, top: initialY, left: initialX }}
       ref={ref}
+      className="border absolute bg-red-300 w-fit h-fit p-4"
     >
-      Set <Input id={id} inputIdx={0} defaultValue={inputs[0]} placeholder="Variable" /> be{" "}
-      <Input id={id} inputIdx={1} defaultValue={inputs[1]} placeholder="Value" />
+      Print <Input id={id} inputIdx={0} defaultValue={inputs[0]} placeholder="Stuff..." />
     </animated.div>
   )
 }

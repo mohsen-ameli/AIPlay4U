@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSpring, animated } from "@react-spring/web"
 import { useGesture } from "@use-gesture/react"
 import { Block } from "../types/general"
@@ -11,7 +11,10 @@ export default function IfBlock({ block_ }: { block_: Block }) {
   const blocks = useBlockStore(state => state.blocks)
   const moveBlock = useBlockStore(state => state.moveBlock)
   const detachBlock = useBlockStore(state => state.detachBlock)
-  const { id, initialX, initialY } = block_
+  const { id, initialX, initialY, inputs } = block_
+
+  const [hidden, setHidden] = useState(true)
+  const [condition, setCondition] = useState("Condition")
 
   const [{ x, y }, api] = useSpring(() => ({ x: 0, y: 0 }))
 
@@ -110,15 +113,38 @@ export default function IfBlock({ block_ }: { block_: Block }) {
     }
   )
 
+  function select(op: string) {
+    useBlockStore.setState(prev => {
+      prev.blocks[id].inputs[1] = op
+      return prev
+    })
+    setHidden(p => !p)
+    setCondition(op)
+  }
+
   return (
     <>
       <animated.div
-        className="border absolute bg-red-300 w-fit h-fit p-4 touch-none"
+        className="border absolute bg-red-300 w-fit h-fit p-4 touch-none z-10"
         {...bind()}
         style={{ x, y, top: initialY, left: initialX }}
         ref={ref}
       >
-        If <Input id={id} inputIdx={0} placeholder="Condition" />
+        <div className="flex">
+          <h1 className="mr-2">If</h1>
+          <Input id={id} inputIdx={0} defaultValue={inputs[0]} placeholder="Variable" />
+          <div className="relative mx-2">
+            <button onClick={() => setHidden(p => !p)} className="px-2 bg-slate-200 hover:bg-slate-300">{condition}</button>
+            <div className={"absolute flex flex-col bg-white w-full " + (hidden ? "hidden" : "")}>
+              <button onClick={() => select("≤")} className="text-center hover:bg-slate-200 w-full">{"≤"}</button>
+              <button onClick={() => select("<")} className="text-center hover:bg-slate-200 w-full">{"<"}</button>
+              <button onClick={() => select(">")} className="text-center hover:bg-slate-200 w-full">{">"}</button>
+              <button onClick={() => select("≥")} className="text-center hover:bg-slate-200 w-full">{"≥"}</button>
+              <button onClick={() => select("=")} className="text-center hover:bg-slate-200 w-full">{"="}</button>
+            </div>
+          </div>
+        <Input id={id} inputIdx={2} defaultValue={inputs[2]} placeholder="Variable" />
+        </div>
       </animated.div>
     </>
   )

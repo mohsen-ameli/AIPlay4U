@@ -8,9 +8,9 @@ export const WindowElectron = {
   homeDir: () => os.homedir(),
   platform: () => os.platform(),
   ls: () => exec.execSync("dir").toString(),
-  loadFile: (name: string) => fs.readFileSync(name + ".txt", "utf-8"),
+  loadFile: (name: string) => fs.readFileSync(name, "utf-8"),
   saveFile: (name: string, content: string) =>
-    fs.writeFileSync(name + ".txt", content, "utf-8")
+    fs.writeFileSync(name, content, "utf-8")
 }
 
 // --------- Expose some API to the Renderer process ---------

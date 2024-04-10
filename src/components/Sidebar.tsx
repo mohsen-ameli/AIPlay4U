@@ -18,7 +18,7 @@ export default function Sidebar() {
     }
   }
 
-  function add(type: "set" | "if") {
+  function add(type: "set" | "if" | "print") {
     const block: Block = {
       id: blocks.length,
       type,
@@ -51,6 +51,7 @@ export default function Sidebar() {
     <div className="bg-slate-900 h-screen gap-4 flex flex-col items-center p-4 fixed left-0 top-0 z-10">
       <Button onClick={() => add("set")}>Add Set Block</Button>
       <Button onClick={() => add("if")}>Add If Block</Button>
+      <Button onClick={() => add("print")}>Add Print Block</Button>
       <Button onClick={printBlocks}>Print All Blocks</Button>
       <Button onClick={runProgram}>Run Program</Button>
       <Button onClick={saveBlocks}>Save File</Button>
