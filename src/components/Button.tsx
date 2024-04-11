@@ -5,7 +5,7 @@ export default function Button(
   return (
     <button
       {...rest}
-      className="border w-full bg-teal-500 p-2 rounded-md text-white"
+      className="w-full transition-all bg-teal-500 hover:bg-teal-200 hover:text-black p-2 rounded-md text-white"
     >
       {children}
     </button>

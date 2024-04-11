@@ -42,10 +42,20 @@ export default function Sidebar() {
     }
   }
 
-  // function onClick() {
-  //   // console.log(window.electron.write("this is a\ntest"))
-  //   // ipcRenderer.send("File", "Hello")
-  // }
+  function onClick() {
+    // console.log(window.electron.write("this is a\ntest"))
+    // ipcRenderer.send("File", "Hello")
+    // window.electron.notification()
+    Notification.requestPermission().then(permission => {
+      if (permission === "granted") {
+        new Notification("Hello World", {
+          body: "This is a test notification",
+          icon: "https://avatars.githubusercontent.com/u/55251014?v=4"
+          // requireInteraction: true,
+        })
+      }
+    })
+  }
 
   return (
     <div className="bg-slate-900 h-screen gap-4 flex flex-col items-center p-4 fixed left-0 top-0 z-10">
@@ -55,6 +65,7 @@ export default function Sidebar() {
       <Button onClick={runProgram}>Run Program</Button>
       <Button onClick={saveBlocks}>Save File</Button>
       <Button onClick={loadBlocks}>Load File</Button>
+      <Button onClick={onClick}>Test</Button>
     </div>
   )
 }

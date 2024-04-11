@@ -49,7 +49,8 @@ export default function Blocks() {
       //   cursor
       // }}
       // {...bind()}
-      className="bg-slate-800 absolute w-[2000px] h-[2000px] select-none"
+      // className="bg-slate-800 absolute w-[2000px] h-[2000px] select-none"
+      className="bg-slate-800 w-screen h-screen select-none"
     >
       {/* <div className="absolute w-full h-full"> */}
       {/* <div

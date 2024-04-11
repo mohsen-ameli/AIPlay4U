@@ -1,4 +1,4 @@
-import { contextBridge } from "electron"
+import { contextBridge, dialog } from "electron"
 import os from "os"
 import exec from "child_process"
 import fs from "fs"
@@ -8,15 +8,21 @@ export const WindowElectron = {
   homeDir: () => os.homedir(),
   platform: () => os.platform(),
   ls: () => exec.execSync("dir").toString(),
-  loadFile: (name: string) => fs.readFileSync(name + ".txt", "utf-8"),
-  saveFile: (name: string, content: string) =>
-    fs.writeFileSync(name + ".txt", content, "utf-8")
+  loadFile: (name: string) => fs.readFileSync(name + ".json", "utf-8"),
+  saveFile: (name: string, content: string) => {
+    fs.writeFileSync(name + ".json", content, "utf-8")
+  },
+  notification: () => {
+    console.log(
+      dialog.showOpenDialog({ properties: ["openFile", "multiSelections"] })
+    )
+  }
 }
 
 // --------- Expose some API to the Renderer process ---------
-// contextBridge.exposeInMainWorld("ipcRenderer", withPrototype(ipcRenderer))
 contextBridge.exposeInMainWorld(WindowElectron.name, WindowElectron)
 
+// contextBridge.exposeInMainWorld("ipcRenderer", withPrototype(ipcRenderer))
 // // `exposeInMainWorld` can't detect attributes and methods of `prototype`, manually patching it.
 // function withPrototype(obj: Record<string, any>) {
 //   const protos = Object.getPrototypeOf(obj)

@@ -22,4 +22,17 @@ export type StoreType = {
   addBlock: (block: Block) => void
   saveBlocks: () => void
   loadBlocks: () => void
+  notification: {
+    message: string
+    show: boolean
+    type: "success" | "error" | "warning" | "info"
+    yes?: {
+      text: string
+      onClick: () => void
+    }
+    no?: {
+      text: string
+      onClick: () => void
+    }
+  }
 }

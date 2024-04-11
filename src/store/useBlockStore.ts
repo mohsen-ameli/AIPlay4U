@@ -145,6 +145,7 @@ const useBlockStore = create<StoreType>((set, get) => ({
         type: block.type,
         prev: block.prev ? block.prev.id : null,
         next: block.next ? block.next.id : null,
+        parentIf: block.parentIf,
         initialX: rect?.x,
         initialY: rect?.y,
         inputs: block.inputs,
@@ -167,7 +168,21 @@ const useBlockStore = create<StoreType>((set, get) => ({
       block.prev = block.prev !== null ? blocks[block.prev as unknown as number] : null //prettier-ignore
       block.next = block.next !== null ? blocks[block.next as unknown as number] : null //prettier-ignore
     }
+    console.log(blocks)
     set({ blocks })
+  },
+  notification: {
+    message: "",
+    show: false,
+    type: "success",
+    yes: {
+      text: "Yes",
+      onClick: () => {}
+    },
+    no: {
+      text: "No",
+      onClick: () => {}
+    }
   }
 }))
 
