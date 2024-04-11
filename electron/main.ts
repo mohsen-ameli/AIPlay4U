@@ -1,15 +1,6 @@
 import { app, BrowserWindow } from "electron"
 import path from "node:path"
 
-// The built directory structure
-//
-// ├─┬─┬ dist
-// │ │ └── index.html
-// │ │
-// │ ├─┬ dist-electron
-// │ │ ├── main.js
-// │ │ └── preload.js
-// │
 process.env.DIST = path.join(__dirname, "../dist")
 process.env.VITE_PUBLIC = app.isPackaged
   ? process.env.DIST
@@ -24,7 +15,8 @@ function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC!, "electron-vite.svg"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      nodeIntegration: true
+      nodeIntegration: true,
+      contextIsolation: true
     }
   })
 
@@ -39,7 +31,9 @@ function createWindow() {
     // win.loadFile('dist/index.html')
     win.loadFile(path.join(process.env.DIST!, "index.html"))
   }
+
   win.maximize()
+  if (process.env.NODE_ENV === "development") win.webContents.openDevTools()
 }
 
 // Quit when all windows are closed, except on macOS. There, it's common
