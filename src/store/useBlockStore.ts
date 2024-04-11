@@ -129,10 +129,18 @@ const useBlockStore = create<StoreType>((set, get) => ({
     }),
   runProgram: () => {
     let block: Block | null = get().blocks[0]
+    const blocksToSave = []
     while (block) {
-      console.log(block)
+      blocksToSave.push({
+        id: block.id,
+        type: block.type,
+        prev: block.prev ? block.prev.id : -1,
+        next: block.next ? block.next.id : -1,
+        inputs: block.inputs
+      })
       block = block.next
     }
+    window.electron.saveFile("runner.json", JSON.stringify(blocksToSave))
   },
   addBlock: (block: Block) =>
     set(state => ({ blocks: [...state.blocks, block] })),
@@ -152,7 +160,7 @@ const useBlockStore = create<StoreType>((set, get) => ({
         blockDepth: block.blockDepth
       })
     }
-    window.electron.saveFile("blocks", JSON.stringify(blocksToSave))
+    window.electron.saveFile("blocks.json", JSON.stringify(blocksToSave))
   },
   loadBlocks: () => {
     // reset all blocks to initial position
@@ -161,7 +169,7 @@ const useBlockStore = create<StoreType>((set, get) => ({
     }
 
     // load blocks from file
-    const blocks: Block[] = JSON.parse(window.electron.loadFile("blocks"))
+    const blocks: Block[] = JSON.parse(window.electron.loadFile("blocks.json"))
 
     // update the block store with the loaded blocks
     for (const block of blocks) {

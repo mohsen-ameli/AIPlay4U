@@ -8,15 +8,9 @@ export const WindowElectron = {
   homeDir: () => os.homedir(),
   platform: () => os.platform(),
   ls: () => exec.execSync("dir").toString(),
-  loadFile: (name: string) => fs.readFileSync(name + ".json", "utf-8"),
-  saveFile: (name: string, content: string) => {
-    fs.writeFileSync(name + ".json", content, "utf-8")
-  },
-  notification: () => {
-    console.log(
-      dialog.showOpenDialog({ properties: ["openFile", "multiSelections"] })
-    )
-  }
+  loadFile: (name: string) => fs.readFileSync(name, "utf-8"),
+  saveFile: (name: string, content: string) =>
+    fs.writeFileSync(name, content, "utf-8")
 }
 
 // --------- Expose some API to the Renderer process ---------

@@ -3,6 +3,7 @@ import SetBlock from "./SetBlock"
 import IfBlock from "./IfBlock"
 import EndBlock from "./EndBlock"
 import StartBlock from "./StartBlock"
+import PrintBlock from "./PrintBlock"
 // import { useSpring, animated } from "@react-spring/web"
 // import { useDrag, useGesture } from "@use-gesture/react"
 // import { useEffect, useRef, useState } from "react"
@@ -66,6 +67,8 @@ export default function Blocks() {
           return <StartBlock block_={block} key={block.id} />
         } else if (block.type === "end") {
           return <EndBlock block_={block} key={block.id} />
+        }else if (block.type === "print") {
+          return <PrintBlock block_={block} key={block.id} />
         }
       })}
       {/* </div>

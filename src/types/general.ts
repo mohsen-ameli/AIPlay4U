@@ -4,7 +4,7 @@ export type Block = {
   id: number
   prev: Block | null
   next: Block | null
-  type: "if" | "set" | "end" | "start"
+  type: "if" | "set" | "end" | "start" | "print"
   springApi?: SpringRef<{ x: number; y: number }>
   ref?: React.MutableRefObject<HTMLDivElement>
   initialX: number
