@@ -10,7 +10,8 @@ export const WindowElectron = {
   ls: () => exec.execSync("dir").toString(),
   loadFile: (name: string) => fs.readFileSync(name, "utf-8"),
   saveFile: (name: string, content: string) =>
-    fs.writeFileSync(name, content, "utf-8")
+    fs.writeFileSync(name, content, "utf-8"),
+  run: (name: string) => exec.execSync("./aiplay4u ./" + name).toString()
 }
 
 // --------- Expose some API to the Renderer process ---------
