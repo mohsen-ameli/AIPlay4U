@@ -149,6 +149,7 @@ const useBlockStore = create<StoreType>((set, get) => ({
       block = block.next
     }
     window.electron.saveFile("runner.json", JSON.stringify(blocksToSave))
+    console.log(window.electron.run("runner.json"))
   },
   addBlock: (block: Block) =>
     set(state => ({ blocks: [...state.blocks, block] })),
