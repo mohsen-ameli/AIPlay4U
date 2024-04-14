@@ -19,7 +19,7 @@ export default function Input({
       onChange={e => {
         setValue(e.target.value)
         useBlockStore.setState(prev => {
-          prev.blocks[id].inputs[inputIdx] = e.target.value
+          prev.blocks[id].inputs[inputIdx] = !isNaN(parseFloat(e.target.value)) ? Number(e.target.value) : e.target.value
           return prev
         })
       }}

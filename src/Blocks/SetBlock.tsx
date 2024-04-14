@@ -71,8 +71,8 @@ export default function SetBlock({ block_ }: { block_: Block }) {
       style={{ x, y, top: initialY, left: initialX }}
       ref={ref}
     >
-      Set <Input id={id} inputIdx={0} defaultValue={inputs[0]} placeholder="Variable" /> be{" "}
-      <Input id={id} inputIdx={1} defaultValue={inputs[1]} placeholder="Value" />
+      Set <Input id={id} inputIdx={0} defaultValue={inputs[0]?.toString()} placeholder="Variable" /> be{" "}
+      <Input id={id} inputIdx={1} defaultValue={inputs[1]?.toString()} placeholder="Value" />
     </animated.div>
   )
 }

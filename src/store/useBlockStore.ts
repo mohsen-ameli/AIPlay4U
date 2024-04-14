@@ -131,20 +131,12 @@ const useBlockStore = create<StoreType>((set, get) => ({
     let block: Block | null = get().blocks[0]
     const blocksToSave = []
     while (block) {
-      let newInputs: any = []
-      for (let input in block.inputs) {
-        let num: number = parseInt(input)
-        if (input === "true") newInputs.push(true)
-        else if (input === "false") newInputs.push(false)
-        else if (!isNaN(num)) newInputs.push(num)
-        else newInputs.push(input)
-      }
       blocksToSave.push({
         id: block.id,
         type: block.type,
         prev: block.prev ? block.prev.id : -1,
         next: block.next ? block.next.id : -1,
-        inputs: newInputs
+        inputs: block.inputs
       })
       block = block.next
     }

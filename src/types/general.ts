@@ -11,7 +11,7 @@ export type Block = {
   initialY: number
   blockDepth: number // how many ifs is this block inside of
   parentIf?: number
-  inputs: string[]
+  inputs: (string | number)[]
 }
 
 export type StoreType = {

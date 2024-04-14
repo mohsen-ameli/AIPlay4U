@@ -71,7 +71,7 @@ export default function PrintBlock({ block_ }: { block_: Block }) {
       ref={ref}
       className="border absolute bg-red-300 w-fit h-fit p-4"
     >
-      Print <Input id={id} inputIdx={0} defaultValue={inputs[0]} placeholder="Stuff..." />
+      Print <Input id={id} inputIdx={0} defaultValue={inputs[0]?.toString()} placeholder="Stuff..." />
     </animated.div>
   )
 }

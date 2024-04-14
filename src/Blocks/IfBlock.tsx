@@ -19,6 +19,9 @@ export default function IfBlock({ block_ }: { block_: Block }) {
   const [{ x, y }, api] = useSpring(() => ({ x: 0, y: 0 }))
 
   useEffect(() => {
+    if (inputs[1]) {
+      select(inputs[1].toString())
+    }
     useBlockStore.setState(prev => {
       prev.blocks[id].ref = ref
       prev.blocks[id].springApi = api
@@ -132,7 +135,7 @@ export default function IfBlock({ block_ }: { block_: Block }) {
       >
         <div className="flex">
           <h1 className="mr-2">If</h1>
-          <Input id={id} inputIdx={0} defaultValue={inputs[0]} placeholder="Variable" />
+          <Input id={id} inputIdx={0} defaultValue={inputs[0]?.toString()} placeholder="Variable" />
           <div className="relative mx-2">
             <button onClick={() => setHidden(p => !p)} className="px-2 bg-slate-200 hover:bg-slate-300">{condition}</button>
             <div className={"absolute flex flex-col bg-white w-full " + (hidden ? "hidden" : "")}>
@@ -143,7 +146,7 @@ export default function IfBlock({ block_ }: { block_: Block }) {
               <button onClick={() => select("=")} className="text-center hover:bg-slate-200 w-full">{"="}</button>
             </div>
           </div>
-        <Input id={id} inputIdx={2} defaultValue={inputs[2]} placeholder="Variable" />
+        <Input id={id} inputIdx={2} defaultValue={inputs[2]?.toString()} placeholder="Variable" />
         </div>
       </animated.div>
     </>
