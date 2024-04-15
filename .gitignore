@@ -1,4 +1,6 @@
-*.json
+blocks.json
+runner.json
+aiplay4u
 
 # Logs
 logs

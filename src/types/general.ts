@@ -1,10 +1,12 @@
 import { SpringRef } from "@react-spring/web"
 
+export type BlockType = "if" | "set" | "end" | "start" | "print" | "for" | "while"
+
 export type Block = {
   id: number
   prev: Block | null
   next: Block | null
-  type: "if" | "set" | "end" | "start" | "print"
+  type: BlockType
   springApi?: SpringRef<{ x: number; y: number }>
   ref?: React.MutableRefObject<HTMLDivElement>
   initialX: number

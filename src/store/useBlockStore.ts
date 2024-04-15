@@ -4,6 +4,7 @@ import getRootBlock from "../utils/GetRootBlock"
 import updateBlockRootPos from "../utils/UpdateBlockRootPos"
 import numBlocksAbove from "../utils/NumBlockAbove"
 import updateChildrenDepth from "../utils/UpdateChildrenDepth"
+import { isParentChild } from "../utils/IsParentChild"
 
 const useBlockStore = create<StoreType>((set, get) => ({
   blocks: [
@@ -24,11 +25,12 @@ const useBlockStore = create<StoreType>((set, get) => ({
       const hoveringBlock = blocks[hoveringId]
       const currBlock = blocks[id]
       const prevBlock = currBlock.prev
-      const endBlock = currBlock.type === "if" ? blocks[id + 1] : null
+      const parentChild = isParentChild(currBlock.type)
+      const endBlock = parentChild ? blocks[id + 1] : null
 
       // Handling block depth and parent if
       if (
-        hoveringBlock.type === "if" &&
+        isParentChild(hoveringBlock.type) &&
         currBlock.parentIf !== hoveringBlock.id
       ) {
         currBlock.blockDepth = hoveringBlock.blockDepth + 1
@@ -40,7 +42,7 @@ const useBlockStore = create<StoreType>((set, get) => ({
         currBlock.blockDepth = hoveringBlock.blockDepth
         currBlock.parentIf = hoveringBlock.parentIf
       }
-      if (currBlock.type === "if") {
+      if (parentChild) {
         updateChildrenDepth(
           blocks,
           currBlock.next,
@@ -54,7 +56,7 @@ const useBlockStore = create<StoreType>((set, get) => ({
       }
 
       // Main logic for moving blocks
-      if (currBlock.type === "if" && endBlock) {
+      if (parentChild && endBlock) {
         if (currBlock.prev) currBlock.prev.next = endBlock.next
         if (endBlock.next) endBlock.next.prev = currBlock.prev
         if (hoveringBlock.next) hoveringBlock.next.prev = endBlock

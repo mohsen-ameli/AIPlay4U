@@ -1,6 +1,7 @@
 import { BLOCK_HEIGHT } from "../data/Constants"
 import useBlockStore from "../store/useBlockStore"
-import { Block } from "../types/general"
+import { Block, BlockType } from "../types/general"
+import { isParentChild } from "../utils/IsParentChild"
 import Button from "./Button"
 
 export default function Sidebar() {
@@ -18,7 +19,7 @@ export default function Sidebar() {
     }
   }
 
-  function add(type: "set" | "if" | "print") {
+  function add(type: BlockType) {
     const block: Block = {
       id: blocks.length,
       type,
@@ -33,7 +34,7 @@ export default function Sidebar() {
 
     addBlock(block)
 
-    if (type === "if") {
+    if (isParentChild(type)) {
       const endBlock = structuredClone(block)
       endBlock.id++
       endBlock.initialY += BLOCK_HEIGHT
@@ -62,11 +63,13 @@ export default function Sidebar() {
       <Button onClick={() => add("set")}>Add Set Block</Button>
       <Button onClick={() => add("if")}>Add If Block</Button>
       <Button onClick={() => add("print")}>Add Print Block</Button>
-      <Button onClick={printBlocks}>Print All Blocks</Button>
+      <Button onClick={() => add("for")}>Add For Block</Button>
+      <Button onClick={() => add("while")}>Add While Block</Button>
+      {/* <Button onClick={printBlocks}>Print All Blocks</Button> */}
       <Button onClick={runProgram}>Run Program</Button>
       <Button onClick={saveBlocks}>Save File</Button>
       <Button onClick={loadBlocks}>Load File</Button>
-      <Button onClick={onClick}>Test</Button>
+      {/* <Button onClick={onClick}>Test</Button> */}
     </div>
   )
 }

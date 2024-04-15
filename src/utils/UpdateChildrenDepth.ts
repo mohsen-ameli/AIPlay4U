@@ -16,7 +16,7 @@ export default function updateChildrenDepth(
   }
 
   block.blockDepth = currDepth + depth + 1
-  if (block.type === "if") {
+  if (block.type === "if" || block.type === "while" || block.type === "for") {
     const newEndId = block.id + 1
     const a = updateChildrenDepth(blocks, block.next, currDepth, newEndId, depth + 1) //prettier-ignore
     if (a > 0) {
