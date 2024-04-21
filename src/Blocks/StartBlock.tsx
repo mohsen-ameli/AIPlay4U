@@ -8,7 +8,7 @@ import { BLOCK_HEIGHT, OFFSET } from "../data/Constants"
 export default function StartBlock({ block_ }: { block_: Block }) {
   const ref = useRef<HTMLDivElement>(null!)
   const blocks = useBlockStore(state => state.blocks)
-  const { id, initialX, initialY } = block_
+  const { id, initialX, initialY, color } = block_
 
   const [{ x, y }, api] = useSpring(() => ({ x: 0, y: 0 }))
 
@@ -54,9 +54,9 @@ export default function StartBlock({ block_ }: { block_: Block }) {
 
   return (
     <animated.div
-      className="border absolute bg-orange-300 w-fit h-fit p-4 touch-none"
+      className="border absolute w-fit h-fit p-4 touch-none"
       {...bind()}
-      style={{ x, y, top: initialY, left: initialX }}
+      style={{ x, y, top: initialY, left: initialX, backgroundColor: color }}
       ref={ref}
     >
       Start Block

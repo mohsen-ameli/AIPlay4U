@@ -5,12 +5,14 @@ import updateBlockRootPos from "../utils/UpdateBlockRootPos"
 import numBlocksAbove from "../utils/NumBlockAbove"
 import updateChildrenDepth from "../utils/UpdateChildrenDepth"
 import { isParentChild } from "../utils/IsParentChild"
+import { startColor } from "../data/Colors"
 
 const useBlockStore = create<StoreType>((set, get) => ({
   blocks: [
     {
       id: 0,
       type: "start",
+      color: startColor,
       prev: null,
       next: null,
       initialX: 200,
@@ -154,6 +156,7 @@ const useBlockStore = create<StoreType>((set, get) => ({
       blocksToSave.push({
         id: block.id,
         type: block.type,
+        color: block.color,
         prev: block.prev ? block.prev.id : null,
         next: block.next ? block.next.id : null,
         parentIf: block.parentIf,

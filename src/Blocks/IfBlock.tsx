@@ -11,7 +11,7 @@ export default function IfBlock({ block_ }: { block_: Block }) {
   const blocks = useBlockStore(state => state.blocks)
   const moveBlock = useBlockStore(state => state.moveBlock)
   const detachBlock = useBlockStore(state => state.detachBlock)
-  const { id, initialX, initialY, inputs } = block_
+  const { id, initialX, initialY, inputs, color } = block_
 
   const [hidden, setHidden] = useState(true)
   const [condition, setCondition] = useState("Condition")
@@ -128,9 +128,9 @@ export default function IfBlock({ block_ }: { block_: Block }) {
   return (
     <>
       <animated.div
-        className="border absolute bg-red-300 w-fit h-fit p-4 touch-none z-10"
+        className="border absolute w-fit h-fit p-4 touch-none z-10"
         {...bind()}
-        style={{ x, y, top: initialY, left: initialX }}
+        style={{ x, y, top: initialY, left: initialX, backgroundColor: color }}
         ref={ref}
       >
         <div className="flex">

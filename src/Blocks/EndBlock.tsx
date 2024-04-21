@@ -5,7 +5,7 @@ import useBlockStore from "../store/useBlockStore"
 
 export default function EndBlock({ block_ }: { block_: Block }) {
   const ref = useRef<HTMLDivElement>(null!)
-  const { id, initialX, initialY } = block_
+  const { id, initialX, initialY, color } = block_
 
   const [{ x, y }, api] = useSpring(() => ({ x: 0, y: 0 }))
 
@@ -19,9 +19,9 @@ export default function EndBlock({ block_ }: { block_: Block }) {
 
   return (
     <animated.div
-      style={{ x, y, top: initialY, left: initialX }}
+      style={{ x, y, top: initialY, left: initialX, backgroundColor: color }}
       ref={ref}
-      className="border absolute bg-red-300 w-fit h-fit p-4"
+      className="border absolute w-fit h-fit p-4"
     >
       Closing If
     </animated.div>

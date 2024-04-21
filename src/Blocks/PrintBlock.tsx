@@ -10,7 +10,7 @@ export default function PrintBlock({ block_ }: { block_: Block }) {
   const blocks = useBlockStore(state => state.blocks)
   const moveBlock = useBlockStore(state => state.moveBlock)
   const detachBlock = useBlockStore(state => state.detachBlock)
-  const { id, initialX, initialY, inputs } = block_
+  const { id, initialX, initialY, inputs, color } = block_
 
   const [{ x, y }, api] = useSpring(() => ({ x: 0, y: 0 }))
 
@@ -67,9 +67,9 @@ export default function PrintBlock({ block_ }: { block_: Block }) {
   return (
     <animated.div
       {...bind()}
-      style={{ x, y, top: initialY, left: initialX }}
+      style={{ x, y, top: initialY, left: initialX, backgroundColor: color }}
       ref={ref}
-      className="border absolute bg-red-300 w-fit h-fit p-4"
+      className="border absolute w-fit h-fit p-4"
     >
       Print <Input id={id} inputIdx={0} defaultValue={inputs[0]?.toString()} placeholder="Stuff..." />
     </animated.div>

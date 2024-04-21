@@ -7,6 +7,7 @@ export type Block = {
   prev: Block | null
   next: Block | null
   type: BlockType
+  color: string
   springApi?: SpringRef<{ x: number; y: number }>
   ref?: React.MutableRefObject<HTMLDivElement>
   initialX: number
