@@ -5,6 +5,7 @@ import EndBlock from "./EndBlock"
 import StartBlock from "./StartBlock"
 import PrintBlock from "./PrintBlock"
 import WhileBlock from "./WhileBlock"
+import ForBlock from "./ForBlock"
 // import { useSpring, animated } from "@react-spring/web"
 // import { useDrag, useGesture } from "@use-gesture/react"
 // import { useEffect, useRef, useState } from "react"
@@ -71,7 +72,7 @@ export default function Blocks() {
         } else if (block.type === "print") {
           return <PrintBlock block_={block} key={block.id} />
         } else if (block.type === "for") {
-          return <></>
+          return <ForBlock block_={block} key={block.id} />
         } else if (block.type === "while") {
           return <WhileBlock block_={block} key={block.id} />
         }

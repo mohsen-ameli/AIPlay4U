@@ -8,9 +8,6 @@ import Button from "./Button"
 export default function Sidebar() {
   const blocks = useBlockStore(state => state.blocks)
   const addBlock = useBlockStore(state => state.addBlock)
-  const runProgram = useBlockStore(state => state.runProgram)
-  const saveBlocks = useBlockStore(state => state.saveBlocks)
-  const loadBlocks = useBlockStore(state => state.loadBlocks)
 
   // function printBlocks() {
   //   const blocks = useBlockStore.getState().blocks
@@ -90,9 +87,9 @@ export default function Sidebar() {
       <Button onClick={() => add("for")}>Add For Block</Button>
       <Button onClick={() => add("while")}>Add While Block</Button>
       {/* <Button onClick={printBlocks}>Print All Blocks</Button> */}
-      <Button onClick={runProgram}>Run Program</Button>
+      {/* <Button onClick={runProgram}>Run Program</Button>
       <Button onClick={saveBlocks}>Save File</Button>
-      <Button onClick={loadBlocks}>Load File</Button>
+      <Button onClick={loadBlocks}>Load File</Button> */}
       {/* <Button onClick={onClick}>Test</Button> */}
     </div>
   )

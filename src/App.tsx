@@ -3,6 +3,7 @@ import Blocks from "./Blocks/Blocks"
 import Sidebar from "./components/Sidebar"
 import useBlockStore from "./store/useBlockStore"
 import Notification from "./components/Notification"
+import Navbar from "./components/Navbar"
 
 export default function App() {
   // Close the notification
@@ -65,6 +66,7 @@ export default function App() {
   return (
     <>
       <Blocks />
+      <Navbar />
       <Sidebar />
       <Notification />
     </>
